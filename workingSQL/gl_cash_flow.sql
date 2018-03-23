@@ -26,7 +26,8 @@
 
 
     --删除cash_flow_temp 的本月数据
-    DELETE FROM cux.cux_gl_cash_flow_temp
+    select * from cux.cux_gl_cash_flow_temp
+--    DELETE FROM cux.cux_gl_cash_flow_temp
      WHERE period_name = :p_date  --当月数据清除
        AND segment1 = :v_org_code --公司
     ;
