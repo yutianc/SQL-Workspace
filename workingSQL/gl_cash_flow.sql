@@ -4,7 +4,7 @@
         p_date  期间
 
 --1. 获取辅助分类帐 (辅助分类帐为现金制会计准则）
---2. 
+--2. 删除cash_flow_temp 的数据  （本月）  清理删除 cash_flow_balances （次月）
 
 */
 
@@ -27,8 +27,9 @@
 
     --删除cash_flow_temp 的本月数据
     DELETE FROM cux.cux_gl_cash_flow_temp
-     WHERE period_name = p_date
-       AND segment1 = v_org_code;
+     WHERE period_name = :p_date  --当月数据清除
+       AND segment1 = :v_org_code --公司
+    ;
     --删除cash_flow_balances 的下月数据
     DELETE FROM cux.cux_gl_cash_flow_balances
      WHERE period_name = v_next_period
