@@ -1,3 +1,40 @@
+/*
+--
+-- 参数：p_co_code   公司
+        p_date  期间
+
+--1. 获取辅助分类帐 (辅助分类帐为现金制会计准则）
+--2. 删除cash_flow_temp 的数据  （本月）  清理删除 cash_flow_balances （次月）
+
+*/
+
+
+--1. 获取辅助分类帐 (辅助分类帐为现金制会计准则） 2024
+  SELECT glr.target_ledger_id
+--    INTO v_sub_ledger_id  --2024
+    FROM gl.gl_ledger_relationships glr, gl.gl_ledgers gl
+   WHERE glr.source_ledger_id = gl.ledger_id
+     AND gl.ledger_id = :v_set_of_bks_id  --2023
+     AND glr.target_ledger_category_code = 'SECONDARY'
+     AND glr.relationship_type_code = 'SUBLEDGER'
+        --AND target_ledger_id = v_sub_ledger_id
+     --AND glr.target_currency_code = 'CNY'    --外币帐套也要使用现金流量表20130915
+     AND glr.primary_ledger_id = :v_set_of_bks_id
+     AND glr.relationship_enabled_flag = 'Y'
+     AND glr.application_id = 101
+;
+
+
+    --删除cash_flow_temp 的本月数据
+    DELETE FROM cux.cux_gl_cash_flow_temp
+     WHERE period_name = :p_date  --当月数据清除
+       AND segment1 = :v_org_code --公司
+    ;
+    --删除cash_flow_balances 的下月数据
+    DELETE FROM cux.cux_gl_cash_flow_balances
+     WHERE period_name = v_next_period
+       AND segment1 = v_org_code;
+
 SELECT fvl2.flex_value_meaning,
                fvl2.description,
                fvl2.attribute2,
@@ -81,7 +118,7 @@ SELECT fvl2.flex_value_meaning,
              )            ad
        WHERE jb.je_batch_id = jh.je_batch_id
          AND jh.je_header_id = jl.je_header_id
-         AND jh.ledger_id = :p_sub_ledger_id --2023 --v_sub_ledger_id 2023
+         AND jh.ledger_id = :p_sub_ledger_id --2023 --v_sub_ledger_id 2024
          AND jh.period_name = :p_date --'2012-12'p_date --会计期间
          AND jl.code_combination_id = gcc.code_combination_id
          AND gcc.segment1 = :p_org_code -- '1090'
